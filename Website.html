@@ -1,0 +1,519 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Cosmic Atlas — Explore Space</title>
+
+  <!-- Fonts (optional; remove if offline) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet" />
+
+  <style>
+    :root {
+      --bg: #0b1023;
+      --bg-2: #0f1733;
+      --card: #141a3a;
+      --text: #e8ecff;
+      --muted: #b7c0e6;
+      --accent: #7aa4ff;
+      --accent-2: #9ef0ff;
+      --planet: #ffd65a;
+      --asteroid: #ff8f6e;
+      --theory: #9f7cff;
+      --shadow: 0 10px 30px rgba(0,0,0,0.35);
+      --radius: 16px;
+      --radius-sm: 12px;
+      --maxw: 1200px;
+    }
+
+    * { box-sizing: border-box; }
+    html, body { height: 100%; background: radial-gradient(1200px 600px at 0% 0%, #12183a 0%, var(--bg) 50%, #070b18 100%); }
+    body {
+      margin: 0;
+      color: var(--text);
+      font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial, sans-serif;
+      line-height: 1.6;
+    }
+
+    header {
+      position: sticky; top: 0; z-index: 1000;
+      backdrop-filter: blur(10px);
+      background: linear-gradient(180deg, rgba(10,16,36,0.8), rgba(10,16,36,0.65));
+      border-bottom: 1px solid rgba(122,164,255,0.15);
+    }
+    .nav {
+      max-width: var(--maxw);
+      margin: 0 auto; padding: 14px 20px;
+      display: grid; grid-template-columns: 1fr auto; gap: 12px; align-items: center;
+    }
+    .brand {
+      display: flex; align-items: center; gap: 12px; text-decoration: none;
+      color: var(--text);
+    }
+    .brand .logo {
+      width: 36px; height: 36px; border-radius: 50%;
+      background: conic-gradient(from 180deg at 50% 50%, #7aa4ff 0%, #9ef0ff 20%, #ffd65a 40%, #ff8f6e 60%, #9f7cff 80%, #7aa4ff 100%);
+      box-shadow: 0 0 30px rgba(122,164,255,0.35);
+    }
+    .brand h1 { font-size: 18px; margin: 0; font-weight: 800; letter-spacing: 0.5px; }
+    nav ul { list-style: none; margin: 0; padding: 0; display: flex; gap: 14px; flex-wrap: wrap; }
+    nav a {
+      color: var(--muted); text-decoration: none; font-weight: 600; font-size: 14px;
+      padding: 8px 12px; border-radius: 999px; transition: 0.2s ease;
+      border: 1px solid transparent;
+    }
+    nav a:hover { color: var(--text); border-color: rgba(122,164,255,0.25); background: rgba(20,26,58,0.6); }
+
+    .hero {
+      position: relative; overflow: hidden;
+      border-bottom: 1px solid rgba(122,164,255,0.15);
+      background: radial-gradient(1100px 600px at 80% 20%, rgba(122,164,255,0.2), rgba(20,26,58,0.05) 60%, transparent 100%);
+    }
+    .hero-wrap {
+      max-width: var(--maxw);
+      margin: 0 auto; padding: 60px 20px 40px;
+      display: grid; grid-template-columns: 1.2fr 1fr; gap: 24px;
+    }
+    .hero h2 { font-size: 44px; margin: 0 0 12px; letter-spacing: 0.5px; }
+    .hero p { color: var(--muted); margin: 0 0 20px; }
+    .cta { display: flex; gap: 12px; flex-wrap: wrap; }
+    .btn {
+      display: inline-flex; align-items: center; gap: 8px;
+      background: linear-gradient(180deg, #3757c9, #2b45a1);
+      color: white; padding: 10px 16px; border: none; border-radius: 10px;
+      box-shadow: var(--shadow); font-weight: 700; cursor: pointer; text-decoration: none;
+    }
+    .btn.secondary {
+      background: linear-gradient(180deg, #233061, #1b274b); color: var(--accent-2);
+      border: 1px solid rgba(122,164,255,0.35);
+    }
+
+    .section { max-width: var(--maxw); margin: 0 auto; padding: 48px 20px; }
+    .section h3 { font-size: 28px; margin: 0 0 4px; }
+    .section .sub { color: var(--muted); margin: 6px 0 22px; }
+    .grid {
+      display: grid; grid-template-columns: repeat(12, 1fr); gap: 18px;
+    }
+    .col-12 { grid-column: span 12; }
+    .col-6 { grid-column: span 6; }
+    .col-4 { grid-column: span 4; }
+    .col-3 { grid-column: span 3; }
+
+    .card {
+      background: linear-gradient(180deg, var(--card), #0f1430);
+      border: 1px solid rgba(122,164,255,0.15);
+      border-radius: var(--radius);
+      overflow: hidden; box-shadow: var(--shadow);
+    }
+    .card .cover {
+      position: relative; aspect-ratio: 16/9; overflow: hidden;
+      border-bottom: 1px solid rgba(122,164,255,0.15);
+    }
+    .card img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .badge {
+      position: absolute; left: 14px; bottom: 14px;
+      background: rgba(10,16,36,0.7); border: 1px solid rgba(122,164,255,0.4);
+      color: var(--accent-2); padding: 6px 10px; border-radius: 999px; font-size: 12px; font-weight: 700;
+      backdrop-filter: blur(6px);
+    }
+    .card .body { padding: 16px; }
+    .card h4 { margin: 0 0 8px; font-size: 18px; }
+    .meta { display: flex; gap: 12px; color: var(--muted); font-size: 12px; margin-bottom: 8px; }
+    .tag { padding: 4px 8px; border-radius: 999px; border: 1px solid rgba(122,164,255,0.2); }
+    .card p { margin: 0 0 10px; color: var(--text); }
+
+    .media {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 18px;
+      background: linear-gradient(180deg, var(--bg-2), #0d1430);
+      border: 1px solid rgba(122,164,255,0.18); border-radius: var(--radius);
+      overflow: hidden; box-shadow: var(--shadow);
+    }
+    .media .pic { aspect-ratio: 4/3; overflow: hidden; }
+    .media .pic img { width: 100%; height: 100%; object-fit: cover; }
+    .media .copy { padding: 18px; }
+    .media h4 { margin: 0 0 8px; font-size: 20px; }
+    .list { display: grid; gap: 8px; margin-top: 10px; }
+    .list .item {
+      display: flex; gap: 10px; align-items: flex-start;
+      padding: 8px 10px; border-radius: var(--radius-sm);
+      background: rgba(20,26,58,0.45); border: 1px solid rgba(122,164,255,0.2);
+    }
+    .dot { width: 8px; height: 8px; border-radius: 50%; margin-top: 6px; background: var(--accent-2); }
+
+    .facts { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; }
+    .fact {
+      background: linear-gradient(180deg, #141a3a, #0f1430);
+      border: 1px solid rgba(122,164,255,0.18); border-radius: 12px; padding: 14px;
+    }
+    .fact .k { color: var(--muted); font-size: 12px; }
+    .fact .v { font-family: "JetBrains Mono", monospace; font-size: 16px; font-weight: 600; }
+
+    details {
+      background: linear-gradient(180deg, #141a3a, #0f1430);
+      border: 1px solid rgba(122,164,255,0.18); border-radius: var(--radius-sm);
+      padding: 12px 14px; color: var(--text);
+    }
+    summary { cursor: pointer; font-weight: 700; color: var(--theory); }
+    details p { color: var(--muted); margin: 8px 0 0; }
+
+    footer {
+      border-top: 1px solid rgba(122,164,255,0.15);
+      background: linear-gradient(180deg, rgba(10,16,36,0.8), rgba(10,16,36,0.9));
+    }
+    .foot-wrap {
+      max-width: var(--maxw); margin: 0 auto; padding: 26px 20px;
+      display: grid; grid-template-columns: 1fr auto; gap: 12px; align-items: center;
+      color: var(--muted); font-size: 13px;
+    }
+
+    @media (max-width: 980px) {
+      .hero-wrap { grid-template-columns: 1fr; padding: 40px 20px; }
+      .grid { gap: 14px; }
+      .col-6, .col-4, .col-3 { grid-column: span 12; }
+      .facts { grid-template-columns: repeat(2, 1fr); }
+      .media { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 560px) {
+      nav ul { display: none; }
+      .facts { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+
+<body>
+  <header>
+    <div class="nav">
+      <a class="brand" href="#">
+        <div class="logo" aria-hidden="true"></div>
+        <h1>Cosmic Atlas</h1>
+      </a>
+      <nav aria-label="Primary">
+        <ul>
+          <li><a href="#planets">Planets</a></li>
+          <li><a href="#moons">Moons</a></li>
+          <li><a href="#rovers">Rovers</a></li>
+          <li><a href="#operations">Space operations</a></li>
+          <li><a href="#telescopes">Telescopes</a></li>
+          <li><a href="#theories">Space theories</a></li>
+          <li><a href="#asteroids">Asteroids</a></li>
+          <li><a href="#gallery">Gallery</a></li>
+        </ul>
+      </nav>
+    </div>
+  </header>
+
+  <section class="hero" id="home">
+    <div class="hero-wrap">
+      <div>
+        <h2>Journey through the cosmos</h2>
+        <p>Explore planets, moons, rovers, operations, telescopes, theories, and asteroids—how we observe, travel, and think about space.</p>
+        <div class="cta">
+          <a class="btn" href="#planets">Start exploring</a>
+          <a class="btn secondary" href="#gallery">See the gallery</a>
+        </div>
+      </div>
+      <div class="card">
+        <div class="cover">
+          <img src="https://images.unsplash.com/photo-1462331940025-496dfbfc7564?q=80&w=1200&auto=format&fit=crop" alt="Nebula with stars forming" />
+          <span class="badge">Deep space</span>
+        </div>
+        <div class="body">
+          <div class="meta">
+            <span class="tag">Nebulae</span>
+            <span class="tag">Star formation</span>
+            <span class="tag">Cosmic dust</span>
+          </div>
+          <p>Stars are born in clouds of gas and dust. Gravity gathers material, ignition begins, and light travels across space and time.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" id="facts">
+    <h3>Cosmic quick facts</h3>
+    <p class="sub">A snapshot of scales, distances, and timelines that shape our understanding of space.</p>
+    <div class="facts" role="list">
+      <div class="fact" role="listitem"><div class="k">Age of the universe</div><div class="v">~13.8 billion years</div></div>
+      <div class="fact" role="listitem"><div class="k">Speed of light</div><div class="v">299,792 km/s</div></div>
+      <div class="fact" role="listitem"><div class="k">Milky Way stars</div><div class="v">~100–400 billion</div></div>
+      <div class="fact" role="listitem"><div class="k">AU (Earth–Sun)</div><div class="v">~149.6 million km</div></div>
+    </div>
+  </section>
+
+  <section id="planets" class="section">
+    <h3>Planets</h3>
+    <p class="sub">From rocky worlds to gas giants, planets reveal the diversity of solar systems.</p>
+
+    <div class="grid">
+      <article class="card col-6">
+        <div class="cover">
+          <img src="https://images.unsplash.com/photo-1473929734620-06224fb3c2aa?q=80&w=1200&auto=format&fit=crop" alt="Rocky planet close-up" />
+          <span class="badge" style="color: var(--planet)">Terrestrial</span>
+        </div>
+        <div class="body">
+          <h4>Rocky worlds</h4>
+          <div class="meta"><span class="tag">Mercury</span><span class="tag">Venus</span><span class="tag">Earth</span><span class="tag">Mars</span></div>
+          <p>Small, dense, with solid surfaces. They form close to stars where heat strips volatile gases, leaving rock and metal.</p>
+        </div>
+      </article>
+
+      <article class="card col-6">
+        <div class="cover">
+          <img src="https://images.unsplash.com/photo-1446776811953-b23d57bd21aa?q=80&w=1200&auto=format&fit=crop" alt="Giant planet with bands and storms" />
+          <span class="badge">Gas &amp; ice giants</span>
+        </div>
+        <div class="body">
+          <h4>Massive atmospheres</h4>
+          <div class="meta"><span class="tag">Jupiter</span><span class="tag">Saturn</span><span class="tag">Uranus</span><span class="tag">Neptune</span></div>
+          <p>Rich in hydrogen, helium, and ices. These giants host extreme winds, rings, and magnetic fields that shape their systems.</p>
+        </div>
+      </article>
+    </div>
+  </section>
+
+  <section id="moons" class="section">
+    <h3>Moons</h3>
+    <p class="sub">From cratered relics to oceans beneath ice—mini worlds with big surprises.</p>
+
+    <div class="grid">
+      <div class="media col-6">
+        <div class="pic">
+          <img src="https://images.unsplash.com/photo-1477849421513-3f5d52f3f575?q=80&w=1200&auto=format&fit=crop" alt="Icy moon surface with ridges" />
+        </div>
+        <div class="copy">
+          <h4>Ocean worlds</h4>
+          <p>Europa and Enceladus may harbor subsurface oceans warmed by tidal forces—prime targets in the search for life.</p>
+          <div class="list">
+            <div class="item"><span class="dot"></span><div><strong>Ice shell:</strong> Kilometers thick, shielding liquid water below.</div></div>
+            <div class="item"><span class="dot"></span><div><strong>Plumes:</strong> Jets of water vapor venting from the surface.</div></div>
+            <div class="item"><span class="dot"></span><div><strong>Habitability:</strong> Energy and chemistry could support microbes.</div></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="media col-6">
+        <div class="pic">
+          <img src="https://images.unsplash.com/photo-1483683804023-6ccdb62f86ef?q=80&w=1200&auto=format&fit=crop" alt="Cratered lunar landscape" />
+        </div>
+        <div class="copy">
+          <h4>Earth’s Moon</h4>
+          <p>Our Moon stabilizes Earth’s tilt, drives tides, and preserves a record of solar system history on its ancient surface.</p>
+          <div class="list">
+            <div class="item"><span class="dot"></span><div><strong>Mare &amp; highlands:</strong> Dark basaltic plains and bright anorthosite terrain.</div></div>
+            <div class="item"><span class="dot"></span><div><strong>Regolith:</strong> Fine dust shaped by impacts and solar wind.</div></div>
+            <div class="item"><span class="dot"></span><div><strong>Tidal effects:</strong> Ocean tides and subtle crustal flexing on Earth.</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="rovers" class="section">
+    <h3>Rovers</h3>
+    <p class="sub">Robotic explorers turn distant worlds into places we can read and understand.</p>
+
+    <div class="grid">
+      <article class="card col-4">
+        <div class="cover">
+          <img src="https://images.unsplash.com/photo-1534797250584-50c78b4703cc?q=80&w=1200&auto=format&fit=crop" alt="Mars rover navigating dusty terrain" />
+          <span class="badge">Mars</span>
+        </div>
+        <div class="body">
+          <h4>Perseverance</h4>
+          <p>Collects rock cores, searches for biosignatures, and tests oxygen production from Martian atmosphere.</p>
+        </div>
+      </article>
+
+      <article class="card col-4">
+        <div class="cover">
+          <img src="https://images.unsplash.com/photo-1504384308090-c894fdcc538d?q=80&w=1200&auto=format&fit=crop" alt="Rover silhouette under starry sky" />
+          <span class="badge">Legacy</span>
+        </div>
+        <div class="body">
+          <h4>Curiosity</h4>
+          <p>Analyzes minerals and organics, revealing a once-habitable lake environment in Gale Crater.</p>
+        </div>
+      </article>
+
+      <article class="card col-4">
+        <div class="cover">
+          <img src="https://images.unsplash.com/photo-1483721310020-03333e577e96?q=80&w=1200&auto=format&fit=crop" alt="Lunar rover concept on regolith" />
+          <span class="badge">Moon</span>
+        </div>
+        <div class="body">
+          <h4>Artemis era</h4>
+          <p>New lunar rovers aim to map ice in shadowed craters and support human surface missions.</p>
+        </div>
+      </article>
+    </div>
+  </section>
+
+  <section id="operations" class="section">
+    <h3>Space operations</h3>
+    <p class="sub">Launch, communicate, navigate, and protect—operations turn missions into successes.</p>
+
+    <div class="grid">
+      <div class="media col-6">
+        <div class="pic">
+          <img src="https://images.unsplash.com/photo-1588495752527-5fec2f43a2f6?q=80&w=1200&auto=format&fit=crop" alt="Rocket launch plume at dusk" />
+        </div>
+        <div class="copy">
+          <h4>Launch systems</h4>
+          <p>From expendable rockets to reusable boosters, launch vehicles deliver payloads to orbit and beyond.</p>
+          <div class="list">
+            <div class="item"><span class="dot"></span><div><strong>Staging:</strong> Shed mass for efficiency as speed increases.</div></div>
+            <div class="item"><span class="dot"></span><div><strong>Guidance:</strong> Avionics keep trajectories precise through ascent.</div></div>
+            <div class="item"><span class="dot"></span><div><strong>Recovery:</strong> Reusability reduces cost and increases cadence.</div></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="media col-6">
+        <div class="pic">
+          <img src="https://images.unsplash.com/photo-1523961131990-5ea7c61b2107?q=80&w=1200&auto=format&fit=crop" alt="Mission control room with operators" />
+        </div>
+        <div class="copy">
+          <h4>Mission control</h4>
+          <p>Telemetry, tracking, and command networks keep craft connected while teams orchestrate maneuvers and troubleshooting.</p>
+          <div class="list">
+            <div class="item"><span class="dot"></span><div><strong>Deep space network:</strong> Giant antennas receive faint signals across the solar system.</div></div>
+            <div class="item"><span class="dot"></span><div><strong>Navigation:</strong> Radiometric and optical methods refine position and velocity.</div></div>
+            <div class="item"><span class="dot"></span><div><strong>Operations:</strong> Sequencing instruments, power, and communications windows.</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="telescopes" class="section">
+    <h3>Space telescopes</h3>
+    <p class="sub">Observatories above the atmosphere capture light across the spectrum.</p>
+
+    <div class="grid">
+      <article class="card col-6">
+        <div class="cover">
+          <img src="https://images.unsplash.com/photo-1484249170766-1f507a2704fa?q=80&w=1200&auto=format&fit=crop" alt="Telescope dome beneath the night sky" />
+          <span class="badge">Optical</span>
+        </div>
+        <div class="body">
+          <h4>Hubble Space Telescope</h4>
+          <p>From stunning galaxies to measuring cosmic expansion, Hubble’s legacy reshaped modern astronomy.</p>
+        </div>
+      </article>
+      <article class="card col-6">
+        <div class="cover">
+          <img src="https://images.unsplash.com/photo-1454789548928-9efd52dc4031?q=80&w=1200&auto=format&fit=crop" alt="Infrared telescope concept with gold mirrors" />
+          <span class="badge">Infrared</span>
+        </div>
+        <div class="body">
+          <h4>Infrared observatories</h4>
+          <p>Infrared light pierces dust to reveal star nurseries, exoplanet atmospheres, and the earliest galaxies.</p>
+        </div>
+      </article>
+    </div>
+  </section>
+
+  <section id="theories" class="section">
+    <h3>Space theories</h3>
+    <p class="sub">Ideas that frame our cosmic story—from beginnings to fate.</p>
+
+    <div class="grid">
+      <div class="col-12" style="display: grid; gap: 12px;">
+        <details>
+          <summary>Big Bang and cosmic expansion</summary>
+          <p>The universe expanded from a hot, dense state. Matter cooled, structures formed, and light stretched—seen in background radiation and redshift.</p>
+        </details>
+        <details>
+          <summary>Dark matter and dark energy</summary>
+          <p>Unseen mass shapes galaxies, while a mysterious energy drives accelerated expansion—together dominating the cosmic budget.</p>
+        </details>
+        <details>
+          <summary>Planet formation</summary>
+          <p>Disks around young stars birth planets. Dust clumps, gas accretes, and migrations sculpt diverse system architectures.</p>
+        </details>
+        <details>
+          <summary>Life beyond Earth</summary>
+          <p>Habitability depends on energy, chemistry, and stability. Ocean worlds and exoplanets offer promising laboratories.</p>
+        </details>
+      </div>
+    </div>
+  </section>
+
+  <section id="asteroids" class="section">
+    <h3>Asteroids</h3>
+    <p class="sub">Primitive building blocks and occasional hazards—asteroids hold clues to the solar system’s origins.</p>
+
+    <div class="grid">
+      <article class="card col-6">
+        <div class="cover">
+          <img src="https://images.unsplash.com/photo-1454789548928-9efd52dc4031?q=80&w=1200&auto=format&fit=crop" alt="Irregular rocky asteroid close-up" />
+          <span class="badge" style="color: var(--asteroid)">Near-Earth</span>
+        </div>
+        <div class="body">
+          <h4>Near-Earth objects</h4>
+          <p>Asteroids with orbits that cross Earth’s path are tracked for planetary defense and studied for resources and science.</p>
+        </div>
+      </article>
+
+      <article class="card col-6">
+        <div class="cover">
+          <img src="https://images.unsplash.com/photo-1583394838336-acd977736f90?q=80&w=1200&auto=format&fit=crop" alt="Asteroid field visualization" />
+          <span class="badge">Main belt</span>
+        </div>
+        <div class="body">
+          <h4>Between Mars and Jupiter</h4>
+          <p>The main belt hosts diverse bodies—carbon-rich, stony, and metallic—preserving early solar materials.</p>
+        </div>
+      </article>
+    </div>
+  </section>
+
+  <section id="gallery" class="section">
+    <h3>Gallery</h3>
+    <p class="sub">A visual tour—bookmark-worthy views from space exploration.</p>
+
+    <div class="grid">
+      <div class="card col-3">
+        <div class="cover">
+          <img src="https://images.unsplash.com/photo-1444703684929-26a136c45b9b?q=80&w=1200&auto=format&fit=crop" alt="Spiral galaxy with bright core and dust lanes" />
+          <span class="badge">Galaxy</span>
+        </div>
+        <div class="body"><h4>Spiral grace</h4><p>Dust lanes trace arms where stars are born.</p></div>
+      </div>
+
+      <div class="card col-3">
+        <div class="cover">
+          <img src="https://images.unsplash.com/photo-1447433819943-74a20887a81e?q=80&w=1200&auto=format&fit=crop" alt="Aurora above Earth from orbit" />
+          <span class="badge">Earth</span>
+        </div>
+        <div class="body"><h4>Polar lights</h4><p>Solar wind meets atmosphere in electric color.</p></div>
+      </div>
+
+      <div class="card col-3">
+        <div class="cover">
+          <img src="https://images.unsplash.com/photo-1470225620780-dba8ba36b745?q=80&w=1200&auto=format&fit=crop" alt="Saturn with visible rings" />
+          <span class="badge">Saturn</span>
+        </div>
+        <div class="body"><h4>Elegant rings</h4><p>Ice and rock sculpt a cosmic masterpiece.</p></div>
+      </div>
+
+      <div class="card col-3">
+        <div class="cover">
+          <img src="https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?q=80&w=1200&auto=format&fit=crop" alt="Mars red landscape with hills" />
+          <span class="badge">Mars</span>
+        </div>
+        <div class="body"><h4>Red vistas</h4><p>Wind and dust shape a stark beauty.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <div class="foot-wrap">
+      <div>© Cosmic Atlas — Curiosity is the engine of discovery.</div>
+      <div>Made for explorers</div>
+    </div>
+  </footer>
+</body>
+</html>
